@@ -5,7 +5,7 @@ class TaskGroup: XCTestCase {
     /*
      # TaskGroup
 
-     `TaskGroup` provides a way to group tasks as async/let but provide more advanced usages, such as reading values as they become avaiable and producing new tasks from the result.
+     `TaskGroup` provides a way to group tasks as async/let but provide more advanced usages, such as reading values as they become available and producing new tasks from the result.
 
      In the example below the tasks are add in sequence but the output order is not guaranteed to be the same as they are added in.
      */
@@ -38,7 +38,6 @@ class TaskGroup: XCTestCase {
      */
 
     func testTaskGroupWithDelay() async throws {
-
         let result = try await withThrowingTaskGroup(of: String.self, returning: [String].self, body: { taskGroup in
             taskGroup.addTask {
                 return try await self.getValueWithDelay("A", 5)
@@ -49,6 +48,7 @@ class TaskGroup: XCTestCase {
             taskGroup.addTask {
                 return try await self.getValueWithDelay("C", 3)
             }
+
 
             var values = [String]()
             for try await result in taskGroup {
@@ -112,7 +112,9 @@ class TaskGroup: XCTestCase {
     }
 
     func getValueWithDelay<T>(_ value: T, _ delayInSeconds: UInt64) async throws -> T {
+        print("Start \(value)")
         try await Task.sleep(nanoseconds: delayInSeconds * 1_000_000_000)
+        print("Finish \(value)")
         return value
     }
 }

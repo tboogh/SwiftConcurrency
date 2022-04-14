@@ -1,6 +1,6 @@
 import XCTest
 
-class ErrorHandling {
+class ErrorHandling: XCTestCase {
 
     /*:
     # Error handling
@@ -9,7 +9,14 @@ class ErrorHandling {
 
     func aAsyncThrowingFunction() async throws {
         // Lets do some work, or throw an error 😱!
+        throw NSError(domain: "😱", code: 666)
+
     }
+
+    func testThrow() async throws {
+        try await aAsyncThrowingFunction()
+    }
+
     /*:
      The syntax is similar for an async property:
      */

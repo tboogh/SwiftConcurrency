@@ -16,23 +16,30 @@ class CancellationTests: XCTestCase {
 
     func testCancellationDemoWithoutCancellationChecks() async {
         let demoTask = Task {
+
             func parentTask() async  {
-                print("Hello, CancellationDemoWithoutCancellationChecks!")
+                print("Hello, CancellationDemoWithoutCancellationChecks! \(Task.isCancelled)")
                 await firstChildTask()
                 await secondChildTask()
             }
 
             func firstChildTask() async  {
-                print("Hello, first child task!")
+                print("Hello, first child task! \(Task.isCancelled)")
             }
 
             func secondChildTask() async {
-                print("Hello, second child task!")
+                print("Hello, second child task! \(Task.isCancelled)")
             }
+
+            /*
+             Hello, CancellationDemoWithoutCancellationChecks! true
+             Hello, first child task! true
+             Hello, second child task! true
+             */
 
             await parentTask()
         }
-
+        demoTask.cancel()
         await demoTask.value
     }
 
@@ -68,10 +75,10 @@ class CancellationTests: XCTestCase {
 
      Cancellation can also be done with try/catch by using the `Task.checkCancellation()` method
      */
-    func testCancellationDemoWithThrowingCancellationChecks() async throws{
+    func testCancellationDemoWithThrowingCancellationChecks() async throws {
         let demoTask = Task {
             func parentTask() async throws {
-                print("Hello, CancellationDemoWithCancellationChecks!")
+                print("Hello, CancellationDemoWithCancellationChecks! \(Task.isCancelled)")
                 try await firstChildTask()
                 try await secondChildTask()
             }
@@ -97,30 +104,36 @@ class CancellationTests: XCTestCase {
      If mixing structured and unstructured concurrency the cancellation will not propogate. In the first example both tasks are cancelled but in the following the second task will not be.
      */
 
-    func testCancellationDemoWithMixedConcurrency() async {
+    func testCancellationDemoWithMixedConcurrency() async throws {
         let demoTask = Task {
-            func parentTask() async  {
+            func parentTask() async throws {
                 print("Hello, CancellationDemoWithMixedConcurrency!")
-                await firstChildTask()
-                let task = secondChildTask()
+                try await firstChildTask()
+                let task = try secondChildTask()
                 await task.value
             }
 
-            func firstChildTask() async  {
+            func firstChildTask() async throws {
                 print("First is cancelled: \(Task.isCancelled)")
             }
 
-            func secondChildTask() -> Task<Void, Never> {
-                Task {
-                    print("Second is cancelled: \(Task.isCancelled)")
+            func secondChildTask() throws -> Task<Void, Never> {
+
+                return Task {
+                    do {
+                        try Task.checkCancellation()
+                        print("Second is cancelled: \(Task.isCancelled)")
+                    } catch {
+                        // :feelsbadman
+                    }
                 }
             }
 
-            await parentTask()
+            try await parentTask()
         }
 
         demoTask.cancel()
-        await demoTask.value
+        try await demoTask.value
     }
 
     /*
@@ -132,14 +145,14 @@ class CancellationTests: XCTestCase {
         func parentTask() async  {
             print("Hello, CancellationDemoWithCancellationChecks!")
             await firstChildTask()
-            withUnsafeCurrentTask { task in
-                task?.cancel()
-            }
             await secondChildTask()
         }
 
         func firstChildTask() async  {
             print("First is cancelled: \(Task.isCancelled)")
+            withUnsafeCurrentTask { task in
+                task?.cancel()
+            }
         }
 
         func secondChildTask() async {

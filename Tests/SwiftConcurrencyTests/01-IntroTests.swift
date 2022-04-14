@@ -12,7 +12,13 @@ final class IntroTests: XCTestCase {
 
     To start a task we need to prefix it with the keyword *await*. This can only be done in a context that can await tasks.
      */
+
     func testExample() async throws {
+        
+        DispatchQueue.main.async {
+            print("Async")
+        }
+
         func say() async -> String {
             "Hello, world"
         }

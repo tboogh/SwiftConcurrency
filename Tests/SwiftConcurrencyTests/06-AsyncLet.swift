@@ -26,9 +26,30 @@ class AsyncLet: XCTestCase {
         async let asyncLetA = getValueWithDelay("A", 5)
         async let asyncLetB = getValueWithDelay("B", 2)
         async let asyncLetC = getValueWithDelay("C", 3)
+        print("Start parent")
+//        try await Task.sleep(nanoseconds: 10_000_000_000)
+        print("Wait parent")
         let result = try await [asyncLetA,
                                 asyncLetB,
                                 asyncLetC]
+        print("Async let result: \(result)")
+    }
+
+    func testTaskAsyncLetWithRandomTimer() async throws {
+        let taskA = Task { try await getValueWithDelay("A", 5) }
+        let taskB = Task { try await getValueWithDelay("B", 2) }
+        taskB.cancel()
+        let taskC = Task { try await getValueWithDelay("C", 3) }
+        print("Start parent")
+
+        print("Wait parent")
+        let resultTaskA = try await taskA.value
+        NSLog("TaskA")
+        let resultTaskB = try await taskB.value
+        NSLog("TaskB")
+        let resultTaskC = try await taskC.value
+        NSLog("TaskC")
+        let result = [resultTaskA, resultTaskB, resultTaskC]
         print("Async let result: \(result)")
     }
 
@@ -50,6 +71,8 @@ class AsyncLet: XCTestCase {
     }
 
     func getValueWithDelay(_ value: String, _ delayInSeconds: UInt64) async throws -> String{
+        print("start \(value)")
+        try Task.checkCancellation()
         try await Task.sleep(nanoseconds: delayInSeconds * 1_000_000_000)
         print(value)
         return value

@@ -25,8 +25,9 @@ struct AsyncPropertySampleClass {
    }
 
    // Uncomment the following and try to build and you will get the error output "error: 'set' accessor cannot have specifier 'async'"
+    private var setVariable: String = ""
    /*
-   var setVariable: String = ""
+
    var setter: String {
        set async {
            setVariable = newValue
@@ -35,6 +36,10 @@ struct AsyncPropertySampleClass {
            setVariable
        }
    }*/
+
+    mutating func mutate(input: String) async {
+        setVariable = input
+    }
 }
 
 

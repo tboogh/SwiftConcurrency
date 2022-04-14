@@ -10,11 +10,26 @@ final class UnstructuredConcurrencyTests: XCTestCase {
      Inside the body of the task we are now in a context where we can use *Structured Concurrency*.
      */
 
-    func testTask() {
-        Task {
-            //
-            func test() async {
+    func testAsync() async {
+        await testTwoAsync()
+        await testThreeAsync()
+    }
 
+    func testTwoAsync() async {
+        await testThreeAsync()
+    }
+
+    func testThreeAsync() async {
+        await testTwoAsync()
+    }
+
+    func testTask() {
+        let task = Task {
+            
+            func test() async {
+                await Task {
+                    print("hello")
+                }
             }
 
             await test()
